@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent" >
+
+    <com.erkas.app.scalepanel.ScalePanelLayout
+            xmlns:erkas="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/sliding_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="bottom|right"
+            erkas:collapsedHeight="80dp"
+            erkas:collapsedWidth="80dp"
+            erkas:expandView="@+id/expand"
+            erkas:dragView="@+id/expand">
+
+        <Button
+                android:id="@+id/expand"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="Expand Button" >
+        </Button>
+
+    </com.erkas.app.scalepanel.ScalePanelLayout>
+
+
+</FrameLayout>

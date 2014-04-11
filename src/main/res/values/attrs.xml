@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="ScalePanelLayout">
+        <attr name="collapsedWidth" format="dimension" />
+        <attr name="collapsedHeight" format="dimension" />
+        <attr name="fadeColor" format="color" />
+        <attr name="flingVelocity" format="integer" />
+        <attr name="dragView" format="reference" />
+        <attr name="expandView" format="reference" />
+    </declare-styleable>
+
+</resources>
