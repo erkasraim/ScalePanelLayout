@@ -9,10 +9,13 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
+import android.support.v4.widget.ViewDragHelperCustom;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.*;
 import android.view.accessibility.AccessibilityEvent;
 
@@ -169,6 +172,11 @@ public class ScalePanelLayout extends ViewGroup {
     private boolean mIsScaleEnabled;
 
     /**
+     * 컨텐츠 뷰를 포함하는 경우를 대비한 값.
+     */
+    private boolean mHasContentView;
+
+    /**
      * Flag indicating if a drag view can have its own touch events.  If set
      * to true, a drag view can scroll horizontally and have its own click listener.
      *
@@ -188,7 +196,7 @@ public class ScalePanelLayout extends ViewGroup {
 
     private PanelScaleListener mPanelScaleListener;
 
-    private final ViewDragHelper mDragHelper;
+    private final ViewDragHelperCustom mDragHelper;
 
     /**
      * Stores whether or not the pane was expanded the last time it was scaleable.
@@ -261,8 +269,8 @@ public class ScalePanelLayout extends ViewGroup {
                     throw new IllegalArgumentException("layout_gravity must be set to either top or bottom");
                 }
 
-                final int layoutDirection = getLayoutDirection();
-                final int absoluteGravity = Gravity.getAbsoluteGravity(mGravity, layoutDirection); // for RTL, LTR
+                final int layoutDirection = ViewCompat.getLayoutDirection(this);
+                final int absoluteGravity = GravityCompat.getAbsoluteGravity(mGravity, layoutDirection); // for RTL, LTR
                 final int minorGravity = absoluteGravity & Gravity.HORIZONTAL_GRAVITY_MASK;
                 mIsExpanding = true;
                 mIsGravityBottom = majorGravity == Gravity.BOTTOM;
@@ -297,7 +305,7 @@ public class ScalePanelLayout extends ViewGroup {
 
         setWillNotDraw(false);
 
-        mDragHelper = ViewDragHelper.create(this, 0.5f, new DragHelperCallback());
+        mDragHelper = ViewDragHelperCustom.create(this, 0.5f, new DragHelperCallback());
         mDragHelper.setMinVelocity(mMinFlingVelocity * density);
 
         mCanScaleChange = true;
@@ -389,7 +397,7 @@ public class ScalePanelLayout extends ViewGroup {
     }
 
 
-    void dispatchOnPanelSlide(View panel) {
+    void dispatchOnPanelScale(View panel) {
         if (mPanelScaleListener != null) {
             mPanelScaleListener.onPanelScale(panel, mScaleOffset);
         }
@@ -487,89 +495,44 @@ public class ScalePanelLayout extends ViewGroup {
         }
 
         int layoutHeight = heightSize - getPaddingTop() - getPaddingBottom();
-        int panelHeight = mPanelHeight;
 
         final int childCount = getChildCount();
 
-//        if (childCount > 2) {
-//            Log.e(TAG, "onMeasure: More than two child views are not supported.");
-//        } else if (getChildAt(1).getVisibility() == GONE) {
-//            panelHeight = 0;
-//        }
-
-        // We'll find the current one below.
-//        mScaleableView = null;
-//        mCanScaleChange = false;
-
-        final View child = getChildAt(0);
-        final LayoutParams lp = (LayoutParams) child.getLayoutParams();
-
-        int height = layoutHeight;
-
-        lp.scaleable = true;
-        lp.dimWhenOffset = true;
-        mScaleableView = child;
-        mCanScaleChange = true;
-
-        int childWidthSpec;
-        if (lp.width == LayoutParams.WRAP_CONTENT) {
-            childWidthSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.AT_MOST);
-        } else if (lp.width == LayoutParams.MATCH_PARENT) {
-            childWidthSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.EXACTLY);
-        } else {
-            childWidthSpec = MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY);
+        if (childCount > 1) {
+            Log.e(TAG, "onMeasure: More than two child views are not supported.");
         }
-
-        int childHeightSpec;
-        if (lp.height == LayoutParams.WRAP_CONTENT) {
-            childHeightSpec = MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST);
-        } else if (lp.height == LayoutParams.MATCH_PARENT) {
-            childHeightSpec = MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY);
-        } else {
-            childHeightSpec = MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY);
-        }
-        child.measure(childWidthSpec, childHeightSpec);
-
 
         // First pass. Measure based on child LayoutParams width/height.
-//        for (int i = 0; i < childCount; i++) {
-//            final View child = getChildAt(i);
-//            final LayoutParams lp = (LayoutParams) child.getLayoutParams();
-//
-//            int height = layoutHeight;
-//            if (child.getVisibility() == GONE) {
-//                lp.dimWhenOffset = false;
-//                continue;
-//            }
-//
-//            if (i == 1) {
-//                lp.scaleable = true;
-//                lp.dimWhenOffset = true;
-//                mScaleableView = child;
-//                mCanScaleChange = true;
-//            }  else if (!mUseExpandView) {
-//                height -= panelHeight;
-//            }
-//
-//            int childWidthSpec;
-//            if (lp.width == LayoutParams.WRAP_CONTENT) {
-//                childWidthSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.AT_MOST);
-//            } else if (lp.width == LayoutParams.MATCH_PARENT) {
-//                childWidthSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.EXACTLY);
-//            } else {
-//                childWidthSpec = MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY);
-//            }
-//
-//            int childHeightSpec;
-//            if (lp.height == LayoutParams.WRAP_CONTENT) {
-//                childHeightSpec = MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST);
-//            } else if (lp.height == LayoutParams.MATCH_PARENT) {
-//                childHeightSpec = MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY);
-//            } else {
-//                childHeightSpec = MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY);
-//            }
-//            child.measure(childWidthSpec, childHeightSpec);
-//        }
+        for (int i = 0; i < childCount; i++) {
+            final View child = getChildAt(0);
+            final LayoutParams lp = (LayoutParams) child.getLayoutParams();
+
+            lp.scaleable = true;
+            lp.dimWhenOffset = true;
+            mScaleableView = child;
+            mCanScaleChange = true;
+
+            int childWidthSpec;
+            if (lp.width == LayoutParams.WRAP_CONTENT) {
+                childWidthSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.AT_MOST);
+            } else if (lp.width == LayoutParams.MATCH_PARENT) {
+                childWidthSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.EXACTLY);
+            } else {
+                childWidthSpec = MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY);
+            }
+
+            int childHeightSpec;
+            if (lp.height == LayoutParams.WRAP_CONTENT) {
+                childHeightSpec = MeasureSpec.makeMeasureSpec(layoutHeight, MeasureSpec.AT_MOST);
+            } else if (lp.height == LayoutParams.MATCH_PARENT) {
+                childHeightSpec = MeasureSpec.makeMeasureSpec(layoutHeight, MeasureSpec.EXACTLY);
+            } else {
+                childHeightSpec = MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY);
+            }
+
+//            Log.d("onMeasure", "child width : " + lp.width + ", height : " + lp.height);
+            child.measure(childWidthSpec, childHeightSpec);
+        }
 
         if (mUseExpandView && mExpandMinWidth < 0) {
             ViewGroup.LayoutParams expandViewlp = mExpandView.getLayoutParams();
@@ -599,7 +562,7 @@ public class ScalePanelLayout extends ViewGroup {
         final int paddingTop = getPaddingTop();
         final int slidingTop = getSlidingTop(); // collapse : getMeasuredHeight() - getPaddingBottom() - (mScaleableView.getMeasuredHeight());
 
-//        Log.d("debug", String.format("paddingLeft : %d, paddingTop : %d, slidingTop : %d", paddingLeft, paddingTop, slidingTop));
+//        Log.d("onLayout", String.format("paddingLeft : %d, paddingTop : %d, slidingTop : %d", paddingLeft, paddingTop, slidingTop));
 
         final int childCount = getChildCount();
 
@@ -630,7 +593,7 @@ public class ScalePanelLayout extends ViewGroup {
                 mScaleRangeX = getMeasuredWidth() - mPanelWidth;
             }
 
-//            Log.d("debug", String.format("mScaleRangeY : %d, childHeight : %d, mPanelHeight : %d", mScaleRangeY, childHeight, mPanelHeight));
+//            Log.d("onLayout", String.format("mScaleRangeY : %d, childHeight : %d, mPanelHeight : %d", mScaleRangeY, childHeight, mPanelHeight));
 
             final int childTop;
             final int childLeft;
@@ -649,7 +612,7 @@ public class ScalePanelLayout extends ViewGroup {
             final int childBottom = childTop + childHeight;
             final int childRight = childLeft + childWidth;
 
-//            Log.d("debug", String.format("childLeft : %d, childTop : %d, childRight : %d, childBottom : %d", childLeft, childTop, childRight, childBottom));
+//            Log.d("onLayout", String.format("childLeft : %d, childTop : %d, childRight : %d, childBottom : %d", childLeft, childTop, childRight, childBottom));
 
             child.layout(childLeft, childTop, childRight, childBottom);
         }
@@ -764,6 +727,14 @@ public class ScalePanelLayout extends ViewGroup {
             return super.onTouchEvent(ev);
         }
 
+        final float x = ev.getX();
+        final float y = ev.getY();
+
+        if (mDragHelper.getViewDragState() != ViewDragHelper.STATE_DRAGGING
+                && !mHasContentView && !isDragViewUnder((int) x, (int) y)) {
+            return super.onTouchEvent(ev);
+        }
+
         mDragHelper.processTouchEvent(ev);
 
         final int action = ev.getAction();
@@ -771,16 +742,12 @@ public class ScalePanelLayout extends ViewGroup {
 
         switch (action & MotionEventCompat.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN: {
-                final float x = ev.getX();
-                final float y = ev.getY();
                 mInitialMotionX = x;
                 mInitialMotionY = y;
                 break;
             }
 
             case MotionEvent.ACTION_UP: {
-                final float x = ev.getX();
-                final float y = ev.getY();
                 final float dx = x - mInitialMotionX;
                 final float dy = y - mInitialMotionY;
                 final int slop = mDragHelper.getTouchSlop();
@@ -922,11 +889,11 @@ public class ScalePanelLayout extends ViewGroup {
         if (newTop == 1) {
             newTop = 0;
         }
-        mScaleOffset = mIsExpanding
-                ? (float) (newTop - topBound) / mScaleRangeY
-                : (float) (topBound - newTop) / mScaleRangeY;
-//        Log.d("debug", "mScaleOffset : " + mScaleOffset + ", newTop : " + newTop + ", topBound : " + topBound);
-        dispatchOnPanelSlide(mScaleableView);
+        mScaleOffset = mIsGravityBottom
+                ? (float) (newTop) / mScaleRangeY
+                : 1.0f - (float) (newTop) / mScaleRangeY;
+//        Log.d("onPanelDragged", "mScaleOffset : " + mScaleOffset + ", newTop : " + newTop + ", topBound : " + topBound);
+        dispatchOnPanelScale(mScaleableView);
     }
 
     private void onExpandViewResize() {
@@ -938,7 +905,7 @@ public class ScalePanelLayout extends ViewGroup {
             params.width = (int)((1.0f - mScaleOffset) * (widthSize - mExpandMinWidth)) + mExpandMinWidth;
             params.height = (int)((1.0f - mScaleOffset) * (heightSize - mExpandMinHeight)) + mExpandMinHeight;
 
-//            Log.d("debug", String.format("width : %d, height : %d, mScaleOffset : %f, widthSize : %d, mExpandMinWidth : %d"
+//            Log.d("onExpandViewResize", String.format("width : %d, height : %d, mScaleOffset : %f, widthSize : %d, mExpandMinWidth : %d"
 //                    , params.width, params.height, mScaleOffset, widthSize, mExpandMinWidth));
 
             mExpandView.setLayoutParams(params);
@@ -998,17 +965,17 @@ public class ScalePanelLayout extends ViewGroup {
         }
 
         int x = mIsGravityRight
-                ? (int) (mScaleableView.getLeft() + slideOffset * mScaleRangeX)
-                : mScaleableView.getLeft();
+                ? (int) (getPaddingLeft() + slideOffset * mScaleRangeX)
+                : 0;
 
-        final int topBound = getSlidingTop();
-        int y = mIsExpanding
+        final int topBound = getPaddingTop(); //getSlidingTop();
+        int y = mIsGravityBottom
                 ? (int) (topBound + slideOffset * mScaleRangeY)
-                : (int) (topBound - slideOffset * mScaleRangeY);
+                : (int) (getMeasuredHeight() * (1.f - slideOffset) - topBound);
 
-//        Log.e("smoothSlideTo", "x : " + x + ", y : " + y);
+//        Log.e("smoothSlideTo", "x : " + x + ", y : " + y + ", slideOffset : " + slideOffset);
 
-        if (mDragHelper.smoothSlideViewTo(mScaleableView, x, y)) {
+        if (mDragHelper.smoothSlideViewTo(mScaleableView, x, y, !mIsGravityBottom)) {
             setAllChildrenVisible();
             ViewCompat.postInvalidateOnAnimation(this);
             return true;
@@ -1018,7 +985,7 @@ public class ScalePanelLayout extends ViewGroup {
 
     @Override
     public void computeScroll() {
-        if (mDragHelper.continueSettling(true)) {
+        if (mDragHelper.continueSettling(true, mIsGravityBottom)) {
             if (!mCanScaleChange) {
                 mDragHelper.abort();
                 return;
@@ -1106,10 +1073,11 @@ public class ScalePanelLayout extends ViewGroup {
         mScaleState = ss.mScaleState;
     }
 
-    private class DragHelperCallback extends ViewDragHelper.Callback {
+    private class DragHelperCallback extends ViewDragHelperCustom.Callback {
 
         @Override
         public boolean tryCaptureView(View child, int pointerId) {
+//            Log.e("tryCaptureView", "child width : " + child.getMeasuredWidth() + ", height : " + child.getMeasuredHeight());
             if (mIsUnableToDrag) {
                 return false;
             }
@@ -1119,8 +1087,8 @@ public class ScalePanelLayout extends ViewGroup {
 
         @Override
         public void onViewDragStateChanged(int state) {
-
-            if (mDragHelper.getViewDragState() == ViewDragHelper.STATE_IDLE) {
+//            Log.e("onViewDragStateChanged", "state : " + state + ", mScaleOffset : " + mScaleOffset);
+            if (state == ViewDragHelperCustom.STATE_IDLE) {
                 if (mScaleOffset == 0) {
                     if (mScaleState != ScaleState.EXPANDED) {
                         updateObscuredViewVisibility();
@@ -1137,6 +1105,7 @@ public class ScalePanelLayout extends ViewGroup {
 
         @Override
         public void onViewCaptured(View capturedChild, int activePointerId) {
+//            Log.e("onViewCaptured", "child width : " + capturedChild.getMeasuredWidth() + ", height : " + capturedChild.getMeasuredHeight());
             // Make all child views visible in preparation for sliding things around
             setAllChildrenVisible();
         }
@@ -1144,6 +1113,12 @@ public class ScalePanelLayout extends ViewGroup {
         @Override
         public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy) {
 //            Log.e("onViewPositionChanged", "left : " + left + ", top : " + top + ", dx : " + dx + ", dy : " + dy);
+            if (mDragHelper.getViewDragState() == ViewDragHelper.STATE_SETTLING) {
+                if (!mIsGravityBottom && top > mScaleRangeY) {
+                    // expand
+                    top -= mExpandMinHeight;
+                }
+            }
             onPanelDragged(top);
             onExpandViewResize();
             invalidate();
@@ -1152,20 +1127,41 @@ public class ScalePanelLayout extends ViewGroup {
         // touch Up 이벤트시에 뷰 위치 계산.
         @Override
         public void onViewReleased(View releasedChild, float xvel, float yvel) {
-            int top = mIsExpanding
-                    ? getPaddingTop()
-                    : getPaddingTop() - mScaleRangeY;
-
+            int top = getPaddingTop();
             int left = getPaddingLeft();
 
-            if (yvel > 0 || (yvel == 0 && mScaleOffset > 0.5f)) {
-                top += mScaleRangeY;
-                left += mScaleRangeX;
+            boolean isExpand = false;
+            if (mIsGravityBottom) {
+                if (yvel < 0 || (yvel == 0 && mScaleOffset < 0.5f)) {
+                    // expand
+                    isExpand = true;
+                }
+            } else {
+                if (yvel > 0 || (yvel == 0 && mScaleOffset < 0.5f)) {
+                    // expand
+                    isExpand = true;
+                }
             }
 
-//            Log.i("debug", "releasedChild.getLeft() : " + left + ", top : " + top);
 
-            mDragHelper.settleCapturedViewAt(left, top);
+            if (mIsGravityRight) {
+                if (!isExpand) {
+                    left += mScaleRangeX;
+                }
+            }
+
+            if (mIsGravityBottom) {
+                if (!isExpand) {
+                    top += mScaleRangeY;
+                }
+            } else {
+                if (isExpand) {
+                    top = getMeasuredHeight() - top;
+                }
+            }
+
+//            Log.e("onViewReleased", "releasedChild.getLeft() : " + left + ", top : " + top + ", yvel : " + yvel);
+            mDragHelper.settleCapturedViewAt(left, top, !mIsGravityBottom);
             invalidate();
         }
 
@@ -1184,42 +1180,32 @@ public class ScalePanelLayout extends ViewGroup {
         public int clampViewPositionVertical(View child, int top, int dy) {
             final int topBound;
             final int bottomBound;
-            if (mIsExpanding) {
+//            Log.e("clampViewPositionVertical", "top : " + top + ", dy : " + dy);
+            if (mIsGravityBottom) {
                 topBound = getPaddingTop();//getSlidingTop();
                 bottomBound = topBound + mScaleRangeY;
+                return Math.min(Math.max(top, topBound), bottomBound);
             } else {
-                bottomBound = getPaddingTop();
-                topBound = bottomBound - mScaleRangeY;
+                topBound = getPaddingTop();//getSlidingTop();
+                bottomBound = topBound + mScaleRangeY;
+                int height = child.getMeasuredHeight() + dy - mExpandMinHeight;
+                return Math.min(Math.max(height, topBound), bottomBound);
             }
-
-            return Math.min(Math.max(top, topBound), bottomBound);
         }
 
-        /**
-         * Restrict the motion of the dragged child view along the horizontal axis.
-         * The default implementation does not allow horizontal motion; the extending
-         * class must override this method and provide the desired clamping.
-         *
-         * @param child Child view being dragged
-         * @param left  Attempted motion along the X axis
-         * @param dx    Proposed change in position for left
-         * @return The new clamped position for left
-         */
         @Override
         public int clampViewPositionHorizontal(View child, int left, int dx) {
             final int leftBound;
             final int rightBound;
             if (mIsGravityRight) {
-                leftBound = getPaddingTop();
+                leftBound = getPaddingLeft();
                 rightBound = leftBound + mScaleRangeX;
             } else {
-                leftBound = mExpandMinWidth;
-                rightBound = leftBound + mScaleRangeX;
+                return getPaddingLeft();
             }
 
             // 좌우 이동을 위해서는 return 값을 조절해야 한다.
-//            return Math.min(Math.max(left, leftBound), rightBound);
-            return rightBound;
+            return Math.min(Math.max(left, leftBound), rightBound);
         }
     }
 

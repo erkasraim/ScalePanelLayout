@@ -9,7 +9,7 @@
             android:id="@+id/sliding_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="bottom|right"
+            android:gravity="top"
             erkas:collapsedHeight="80dp"
             erkas:collapsedWidth="80dp"
             erkas:expandView="@+id/expand"
@@ -20,6 +20,66 @@
                 android:layout_width="80dp"
                 android:layout_height="80dp"
                 android:text="Expand Button" >
+        </Button>
+
+    </com.erkas.app.scalepanel.ScalePanelLayout>
+
+    <com.erkas.app.scalepanel.ScalePanelLayout
+            xmlns:erkas="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/sliding_layout2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="bottom|right"
+            erkas:collapsedHeight="80dp"
+            erkas:collapsedWidth="80dp"
+            erkas:expandView="@+id/expand2"
+            erkas:dragView="@+id/expand2">
+
+        <Button
+                android:id="@+id/expand2"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="Bottom Expand Button" >
+        </Button>
+
+    </com.erkas.app.scalepanel.ScalePanelLayout>
+
+    <com.erkas.app.scalepanel.ScalePanelLayout
+            xmlns:erkas="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/sliding_layout3"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="top|right"
+            erkas:collapsedHeight="80dp"
+            erkas:collapsedWidth="80dp"
+            erkas:expandView="@+id/expand3"
+            erkas:dragView="@+id/expand3">
+
+        <Button
+                android:id="@+id/expand3"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="Right Expand Button" >
+        </Button>
+
+    </com.erkas.app.scalepanel.ScalePanelLayout>
+
+    <com.erkas.app.scalepanel.ScalePanelLayout
+            xmlns:erkas="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/sliding_layout4"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="bottom"
+            erkas:collapsedHeight="80dp"
+            erkas:collapsedWidth="80dp"
+            erkas:expandView="@+id/expand4"
+            erkas:dragView="@+id/expand4">
+
+        <Button
+                android:id="@+id/expand4"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="L/B Expand Button" >
         </Button>
 
     </com.erkas.app.scalepanel.ScalePanelLayout>

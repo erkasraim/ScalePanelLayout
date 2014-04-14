@@ -1,12 +1,11 @@
 package com.erkas.app.scalepanel;
 
+import android.support.v4.view.WindowCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 
 
 public class ScaleActivity extends ActionBarActivity {
@@ -14,22 +13,22 @@ public class ScaleActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().requestFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
+//        supportRequestWindowFeature(WindowCompat.FEATURE_ACTION_BAR_OVERLAY);
         setContentView(R.layout.activity_scale);
 
         final ScalePanelLayout layout = (ScalePanelLayout) findViewById(R.id.sliding_layout);
         layout.setPanelScaleListener(new ScalePanelLayout.PanelScaleListener() {
             @Override
             public void onPanelScale(View panel, float slideOffset) {
-                if (slideOffset < 0.2) {
-                    if (getActionBar().isShowing()) {
-                        getActionBar().hide();
-                    }
-                } else {
-                    if (!getActionBar().isShowing()) {
-                        getActionBar().show();
-                    }
-                }
+//                if (slideOffset < 0.2) {
+//                    if (getSupportActionBar().isShowing()) {
+//                        getSupportActionBar().hide();
+//                    }
+//                } else {
+//                    if (!getSupportActionBar().isShowing()) {
+//                        getSupportActionBar().show();
+//                    }
+//                }
             }
 
             @Override
